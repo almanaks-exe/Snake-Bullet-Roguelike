@@ -111,6 +111,7 @@ ENEMY_SPAWN_EVERY = 1.5    # сек между спавнами
 ENEMY_REPATH_EVERY = 0.25  # сек между пересчетом пути A*
 
 pygame.init()
+pygame.mixer.init()
 sc = pygame.display.set_mode((RES, RES))
 clock = pygame.time.Clock()
 
@@ -140,6 +141,11 @@ score = 0
 font_small = pygame.font.SysFont("consolas", 18)
 font_big = pygame.font.SysFont("arial", 60, True)
 
+
+#Звуки
+shoot = pygame.mixer.Sound("shoot.wav")
+turn = pygame.mixer.Sound("turn.mp3")
+eat = pygame.mixer.Sound("eat.mp3")
 # Пули
 bullets = []  # dict: {pos:[x,y], vel:[vx,vy], r, hit, t_hit, alpha}
 
@@ -338,12 +344,17 @@ while True:
             pygame.quit(); raise SystemExit
         elif event.type == pygame.KEYDOWN:
             ndx, ndy = dir_x, dir_y
-            if event.key in (pygame.K_w, pygame.K_UP):    ndx, ndy = 0, -1
-            elif event.key in (pygame.K_s, pygame.K_DOWN): ndx, ndy = 0,  1
-            elif event.key in (pygame.K_a, pygame.K_LEFT): ndx, ndy = -1, 0
-            elif event.key in (pygame.K_d, pygame.K_RIGHT):ndx, ndy = 1,  0
+            if event.key in (pygame.K_w, pygame.K_UP):    
+                ndx, ndy = 0, -1
+            elif event.key in (pygame.K_s, pygame.K_DOWN): 
+                ndx, ndy = 0,  1
+            elif event.key in (pygame.K_a, pygame.K_LEFT): 
+                ndx, ndy = -1, 0
+            elif event.key in (pygame.K_d, pygame.K_RIGHT):
+                ndx, ndy = 1,  0
             if (ndx, ndy) != (dir_x, dir_y) and can_turn((dir_x, dir_y), (ndx, ndy)):
                 queued_dir = (ndx, ndy)
+                turn.play()
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             # выстрел из головы в сторону мыши
             mx, my = pygame.mouse.get_pos()
@@ -359,6 +370,7 @@ while True:
                 "t_hit": 0.0,
                 "alpha": 255
             })
+            shoot.play()
 
     # === Движение змейки — строго по клеткам, с плавной интерполяцией ===
     move_px = SPEED * dt
@@ -389,6 +401,7 @@ while True:
         if (grid_x, grid_y) == apple:
             length_cells += 1
             score += 1
+            eat.play()
             # новое яблоко не на теле
             while True:
                 apple = (randrange(CELLS), randrange(CELLS))
